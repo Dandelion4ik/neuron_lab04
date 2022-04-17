@@ -49,6 +49,10 @@ def get_input_vectors():
     return output
 
 
+def get_j():
+    return 7
+
+
 class neuron:
     def __init__(self):
         self.weights = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -56,8 +60,14 @@ class neuron:
                                   [1, 1, 1, 0],
                                   [1, 1, 1, 1]]
 
+    def get_old_weights(self):
+        out_arr = []
+        for it in self.weights:
+            out_arr.append(it)
+        return out_arr
+
     # Корректирую весовые коэффициенты согласно правилу Видроу-Хоффа
-    def correction_weights(self, delta_weights=None):
+    def correction_weights(self, delta_weights):
         for it in range(0, 8):
             self.weights[it] += delta_weights[it]
 
@@ -96,10 +106,26 @@ def get_neuron_output(my_neuron, binary_vector):
         return 0, rbf_array
 
 
-def print_output(my_neuron, arr_error):
+def print_output(arr_error):
     plt.plot(arr_error)
     plt.show()
-    print(my_neuron.weights)
+
+
+def print_epoch(epoch_number, count_errors, out_vector, weights):
+    str_out_vector = '('
+    for it in out_vector:
+        str_out_vector += str(it)
+        str_out_vector += ', '
+    str_out_vector = str_out_vector[:-2]
+    str_out_vector += ')'
+    str_present_weights = '('
+    for it in weights:
+        str_present_weights += str(round(it, 2))
+        str_present_weights += ', '
+    str_present_weights = str_present_weights[:-2]
+    str_present_weights += ')'
+    print(epoch_number.center(11, ' '), str_present_weights.center(50, ' '),
+          str_out_vector.center(50, ' '), str(count_errors).center(15, ' '))
 
 
 def start_learning():
@@ -107,17 +133,24 @@ def start_learning():
     input_vectors = get_input_vectors()
     epoche = 0
     arr_error = []
+    print(
+        'Номер эпохи                     Вектор весов                                    Выходной вектор              '
+        '    Суммарная ошибка')
     while True:
         quadratic_error = 0
+        output_vector = []
+        old_weights = my_neuron.get_old_weights()
         for it in range(0, 16):
             real_output = get_real_output(input_vectors[it])
             neuron_output, rbf_array = get_neuron_output(my_neuron, input_vectors[it])
+            output_vector.append(neuron_output)
             error = real_output - neuron_output
             if real_output != neuron_output:
                 quadratic_error += 1
             correction_neuron(my_neuron, error, rbf_array)
-        epoche += 1
         arr_error.append(quadratic_error)
+        print_epoch(str(epoche), quadratic_error, output_vector, old_weights)
+        epoche += 1
         if quadratic_error == 0:
             break
     return my_neuron, arr_error
@@ -125,4 +158,4 @@ def start_learning():
 
 if __name__ == '__main__':
     my_neuron, arr_error = start_learning()
-    print_output(my_neuron, arr_error)
+    print_output(arr_error)
