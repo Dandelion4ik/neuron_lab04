@@ -130,7 +130,7 @@ def print_epoch(epoch_number, count_errors, out_vector, weights):
 
 def start_learning():
     my_neuron = neuron()
-    input_vectors = get_input_vectors()
+    input_vectors = [[0, 0, 1, 0], [0, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]]
     epoche = 0
     arr_error = []
     print(
@@ -140,7 +140,7 @@ def start_learning():
         quadratic_error = 0
         output_vector = []
         old_weights = my_neuron.get_old_weights()
-        for it in range(0, 16):
+        for it in range(0, 4):
             real_output = get_real_output(input_vectors[it])
             neuron_output, rbf_array = get_neuron_output(my_neuron, input_vectors[it])
             output_vector.append(neuron_output)
