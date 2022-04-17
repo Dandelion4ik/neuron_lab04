@@ -12,8 +12,8 @@ def get_real_output(binary_vector):
 
 
 # Вычисляю дельту весового коэффициента
-def get_delta_weight(norma, error, output_rbf):
-    return norma * error * output_rbf
+def get_delta_weight(norma, error, output_rbf, output_neuron):
+    return norma * error * output_rbf * (1 - output_neuron) * output_neuron
 
 
 # получаю двоичные векторы десятичных чисел от 0 до 16
@@ -55,10 +55,8 @@ def get_j():
 
 class neuron:
     def __init__(self):
-        self.weights = [0, 0, 0, 0, 0, 0, 0, 0]
-        self.center_coordinate = [[], [0, 0, 1, 1], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 1, 0], [1, 0, 1, 1],
-                                  [1, 1, 1, 0],
-                                  [1, 1, 1, 1]]
+        self.weights = [0, 0, 0]
+        self.center_coordinate = [[], [0, 0, 1, 1], [1, 1, 1, 0]]
 
     def get_old_weights(self):
         out_arr = []
@@ -68,7 +66,7 @@ class neuron:
 
     # Корректирую весовые коэффициенты согласно правилу Видроу-Хоффа
     def correction_weights(self, delta_weights):
-        for it in range(0, 8):
+        for it in range(0, 3):
             self.weights[it] += delta_weights[it]
 
     # Вычисление выхода теневого нейрончика
@@ -81,29 +79,32 @@ class neuron:
     # Вычисление сетевого входа
     def get_network(self, rbf_array):
         net = 0
-        for it in range(0, 8):
+        for it in range(0, 3):
             net += rbf_array[it] * self.weights[it]
         return net
 
 
-def correction_neuron(my_neuron, error, rbf_array):
+def correction_neuron(my_neuron, error, binary_vector):
     norma = 0.3
     delta_array = []
-    for index in range(0, 8):
-        delta_array.append(get_delta_weight(norma, error, rbf_array[index]))
+    neuron_output, out, rbf_array = get_neuron_output(my_neuron, binary_vector)
+    for index in range(0, 3):
+        delta_array.append(
+            get_delta_weight(norma, error, rbf_array[index], out))
     my_neuron.correction_weights(delta_array)
 
 
 # вычисляю выход нейронной сети
 def get_neuron_output(my_neuron, binary_vector):
     rbf_array = [1]
-    for index in range(1, 8):
+    for index in range(1, 3):
         rbf_array.append(my_neuron.get_output_rbf(binary_vector, index))
     net = my_neuron.get_network(rbf_array)
-    if net >= 0:
-        return 1, rbf_array
+    out = 1 / (1 + math.exp(-net))
+    if out >= 0.5:
+        return 1, out, rbf_array
     else:
-        return 0, rbf_array
+        return 0, out, rbf_array
 
 
 def print_output(arr_error):
@@ -130,7 +131,7 @@ def print_epoch(epoch_number, count_errors, out_vector, weights):
 
 def start_learning():
     my_neuron = neuron()
-    input_vectors = get_input_vectors()
+    input_vectors = [[0, 0, 1, 0], [0, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]]
     epoche = 0
     arr_error = []
     print(
@@ -140,14 +141,14 @@ def start_learning():
         quadratic_error = 0
         output_vector = []
         old_weights = my_neuron.get_old_weights()
-        for it in range(0, 16):
+        for it in range(0, 4):
             real_output = get_real_output(input_vectors[it])
-            neuron_output, rbf_array = get_neuron_output(my_neuron, input_vectors[it])
+            neuron_output, out, rbf_array = get_neuron_output(my_neuron, input_vectors[it])
             output_vector.append(neuron_output)
             error = real_output - neuron_output
             if real_output != neuron_output:
                 quadratic_error += 1
-            correction_neuron(my_neuron, error, rbf_array)
+            correction_neuron(my_neuron, error, input_vectors[it])
         arr_error.append(quadratic_error)
         print_epoch(str(epoche), quadratic_error, output_vector, old_weights)
         epoche += 1
