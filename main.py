@@ -55,8 +55,9 @@ def get_j():
 
 class neuron:
     def __init__(self):
-        self.weights = [0, 0, 0]
-        self.center_coordinate = [[], [0, 0, 1, 1], [1, 1, 1, 0]]
+        self.weights = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.center_coordinate = [[], [0, 0, 1, 1], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 1, 0], [1, 0, 1, 1],
+                                  [1, 1, 1, 1], [1, 1, 1, 0]]
 
     def get_old_weights(self):
         out_arr = []
@@ -66,7 +67,7 @@ class neuron:
 
     # Корректирую весовые коэффициенты согласно правилу Видроу-Хоффа
     def correction_weights(self, delta_weights):
-        for it in range(0, 3):
+        for it in range(0, 8):
             self.weights[it] += delta_weights[it]
 
     # Вычисление выхода теневого нейрончика
@@ -79,7 +80,7 @@ class neuron:
     # Вычисление сетевого входа
     def get_network(self, rbf_array):
         net = 0
-        for it in range(0, 3):
+        for it in range(0, 8):
             net += rbf_array[it] * self.weights[it]
         return net
 
@@ -88,7 +89,7 @@ def correction_neuron(my_neuron, error, binary_vector):
     norma = 0.3
     delta_array = []
     neuron_output, out, rbf_array = get_neuron_output(my_neuron, binary_vector)
-    for index in range(0, 3):
+    for index in range(0, 8):
         delta_array.append(
             get_delta_weight(norma, error, rbf_array[index], out))
     my_neuron.correction_weights(delta_array)
@@ -97,7 +98,7 @@ def correction_neuron(my_neuron, error, binary_vector):
 # вычисляю выход нейронной сети
 def get_neuron_output(my_neuron, binary_vector):
     rbf_array = [1]
-    for index in range(1, 3):
+    for index in range(1, 8):
         rbf_array.append(my_neuron.get_output_rbf(binary_vector, index))
     net = my_neuron.get_network(rbf_array)
     out = 1 / (1 + math.exp(-net))
